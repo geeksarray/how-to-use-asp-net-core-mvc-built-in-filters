@@ -29,10 +29,10 @@ namespace asp_net_core_filters
             services.AddScoped<AuthorizeIPAddress>(container =>
             {
                 //test for valid authorization
-                //return new AuthorizeIPAddress("127.0.0.1;192.168.1.5;::1");
+                return new AuthorizeIPAddress("127.0.0.1;192.168.1.5;::1");
                 
                 //test for invalid authorization
-                return new AuthorizeIPAddress("000.0.0.0");
+                //return new AuthorizeIPAddress("000.0.0.0");
             });
         }
 

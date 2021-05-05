@@ -1,11 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using System;
 using System.Collections.Generic;
 
 namespace asp_net_core_filters.Filters
 {
-    public class CacheResourceFilter : IResourceFilter
+    public class CacheResourceFilter : Attribute, IResourceFilter
     {
+        public CacheResourceFilter()
+        {
+
+        }
+
         private static readonly Dictionary<string, object> _cache
             = new Dictionary<string, object>();
         private string _cacheKey;
