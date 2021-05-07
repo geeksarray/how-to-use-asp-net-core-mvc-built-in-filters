@@ -1,41 +1,47 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Caching.Memory;
 using System;
-using System.Collections.Generic;
 
 namespace asp_net_core_filters.Filters
 {
-    public class CacheResourceFilter : Attribute, IResourceFilter
+    public class CacheResourceFilter : IResourceFilter 
     {
-        public CacheResourceFilter()
-        {
+        private readonly IMemoryCache _memoryCache;
+        private string _cacheKey;
 
+        public CacheResourceFilter()
+        {   
+            this._memoryCache = new MemoryCache(new MemoryCacheOptions());
         }
 
-        private static readonly Dictionary<string, object> _cache
-            = new Dictionary<string, object>();
-        private string _cacheKey;
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
             _cacheKey = context.HttpContext.Request.Path.ToString();
-            if (_cache.ContainsKey(_cacheKey))
+
+            string contentResult = string.Empty;
+
+            contentResult = _memoryCache.Get<string>(_cacheKey);
+
+            if(!string.IsNullOrEmpty(contentResult))
             {
-                var cachedValue = _cache[_cacheKey] as string;
-                if (cachedValue != null)
-                {
-                    context.Result = new ContentResult()
-                    { Content = cachedValue };
-                }
+                context.Result = new ContentResult()
+                { Content = contentResult };
             }
         }
+
         public void OnResourceExecuted(ResourceExecutedContext context)
         {
-            if (!string.IsNullOrEmpty(_cacheKey) && !_cache.ContainsKey(_cacheKey))
+            if (!string.IsNullOrEmpty(_cacheKey))
             {
                 var result = context.Result as ContentResult;
                 if (result != null)
-                {   
-                    _cache.Add(_cacheKey, result.Content);
+                {
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromDays(1));
+
+                    _memoryCache.Set(_cacheKey, result.Content,
+                                cacheEntryOptions);
                 }
             }
         }

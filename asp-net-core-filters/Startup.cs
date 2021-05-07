@@ -1,15 +1,9 @@
 using asp_net_core_filters.Filters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace asp_net_core_filters
 {
@@ -25,7 +19,13 @@ namespace asp_net_core_filters
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddControllersWithViews(config =>
+                config.Filters.Add(typeof(AppExceptionHandler)));
+
+            services.AddMemoryCache();
+            services.AddSingleton<CacheResourceFilter>();
+            services.AddScoped<TimeTaken>();
+            services.AddScoped<AddResultFilter>();
             services.AddScoped<AuthorizeIPAddress>(container =>
             {
                 //test for valid authorization
@@ -34,6 +34,8 @@ namespace asp_net_core_filters
                 //test for invalid authorization
                 //return new AuthorizeIPAddress("000.0.0.0");
             });
+
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
